@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless balance sheet analyzer using Textract and a serverless API
+
+Conditions:
+  CreateProdResources: !Equals
+    - !Ref AWS::AccountId
+    - 572540046516 # Dennis account ID (Production)
+
+Globals:
+  Function:
+    Runtime: python3.7
+    Handler: app.lambda_handler
+    Architectures:
+      - x86_64
+    Timeout: 20
+    MemorySize: 256
+    Tracing: Active
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If
+        - CreateProdResources
+        - finance-parser-data
+        - sandbox-finance-parser-data
+
+  ProcessDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: process_document/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - textract:AnalyzeDocument
+              Resource: "*"
+      Events:
+        NewBalanceSheetEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref S3Bucket
+            Events: s3:ObjectCreated:*
+    Connectors:
+      S3Connector:
+        Properties:
+          Destination:
+            Id: S3Bucket
+          Permissions:
+            - Read
+            - Write
