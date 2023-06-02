@@ -1,0 +1,28 @@
+{
+   "version":"0",
+   "id":"434ad981-1cce-8857-e57c-10039ddf700a",
+   "detail-type":"Object Created",
+   "source":"aws.s3",
+   "account":"587328694482",
+   "time":"2023-06-02T16:15:26Z",
+   "region":"eu-central-1",
+   "resources":[
+      "arn:aws:s3:::sandbox-finance-parser-data"
+   ],
+   "detail":{
+      "version":"0",
+      "bucket":{
+         "name":"sandbox-finance-parser-data"
+      },
+      "object":{
+         "key":"unprocessed/san.pdf",
+         "size":49856,
+         "etag":"0adc595c8f2dbfabb5c4095f1f91b458",
+         "sequencer":"00647A159E6438B1A6"
+      },
+      "request-id":"47GMMWBYT14BGH15",
+      "requester":"587328694482",
+      "source-ip-address":"88.25.226.176",
+      "reason":"PutObject"
+   }
+}

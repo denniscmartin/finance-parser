@@ -14,7 +14,7 @@ Globals:
     Architectures:
       - x86_64
     Timeout: 20
-    MemorySize: 256
+    MemorySize: 128
     Tracing: Active
 
 Resources:
@@ -25,11 +25,50 @@ Resources:
         - CreateProdResources
         - finance-parser-data
         - sandbox-finance-parser-data
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
 
-  ProcessDocumentFunction:
+  StateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      Tracing:
+        Enabled: true
+      DefinitionUri: statemachine/statemachine.asl.json
+      DefinitionSubstitutions:
+        AnalyzeDocumentFunctionArn: !GetAtt AnalyzeDocumentFunction.Arn
+        ProcessDocumentFunctionArn: !GetAtt ProcessDocumentFunction.Arn
+        UploadDocumentFunctionArn: !GetAtt UploadDocumentFunction.Arn
+      Events:
+        StateChange:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - Object Created
+              detail:
+                bucket:
+                  name:
+                    - !Ref S3Bucket
+                object:
+                  key:
+                    - "prefix": "unprocessed/"
+    Connectors:
+      StateMachineConnector:
+        Properties:
+          Destination:
+            - Id: AnalyzeDocumentFunction
+            - Id: ProcessDocumentFunction
+            - Id: UploadDocumentFunction
+          Permissions:
+            - Write
+
+  AnalyzeDocumentFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: process_document/
+      CodeUri: analyze_document/
       Handler: app.lambda_handler
       Runtime: python3.7
       Policies:
@@ -39,12 +78,6 @@ Resources:
               Action:
                 - textract:AnalyzeDocument
               Resource: "*"
-      Events:
-        NewBalanceSheetEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref S3Bucket
-            Events: s3:ObjectCreated:*
     Connectors:
       S3Connector:
         Properties:
@@ -53,3 +86,58 @@ Resources:
           Permissions:
             - Read
             - Write
+
+  ProcessDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: process_document/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+    Connectors:
+      S3Connector:
+        Properties:
+          Destination:
+            Id: S3Bucket
+          Permissions:
+            - Read
+            - Write
+
+  UploadDocumentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload_document/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+    Connectors:
+      DynamoConnector:
+        Properties:
+          Destination:
+            Id: DynamoTable
+          Permissions:
+            - Write
+      S3Connector:
+        Properties:
+          Destination:
+            Id: S3Bucket
+          Permissions:
+            - Read
+
+  DynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: FinanceParser
+      BillingMode: PAY_PER_REQUEST
+      DeletionProtectionEnabled: !If
+        - CreateProdResources
+        - True
+        - False
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S

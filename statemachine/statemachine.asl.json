@@ -1,0 +1,20 @@
+{
+  "StartAt": "AnalyzeDocumentWithTextract",
+  "States": {
+    "AnalyzeDocumentWithTextract": {
+      "Type": "Task",
+      "Resource": "${AnalyzeDocumentFunctionArn}",
+      "Next": "ProcessDocument"
+    },
+    "ProcessDocument": {
+      "Type": "Task",
+      "Resource": "${ProcessDocumentFunctionArn}",
+      "Next": "UploadDocument"
+    },
+    "UploadDocument": {
+      "Type": "Task",
+      "Resource": "${UploadDocumentFunctionArn}",
+      "End": true
+    }
+  }
+}

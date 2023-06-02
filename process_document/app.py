@@ -3,80 +3,95 @@ import boto3
 from datetime import datetime
 from collections import defaultdict
 
+
 s3_client = boto3.client('s3')
-textract_client = boto3.client('textract')
 
 
 def lambda_handler(event, context):
-    for record in event['Records']:
-        metadata = record['s3']
-        bucket_name = metadata['bucket']['name']
-        object_key = metadata['object']['key']
+    event_message = event['body']['message']
+    object_key = event_message['objectKey']
+    bucket_name = event_message['bucketName']
 
-        doc = textract_client.analyze_document(
-            Document={'S3Object': {'Bucket': bucket_name, 'Name': object_key}},
-            FeatureTypes=['TABLES']
-        )
+    # Download file from s3
+    s3_client.download_file(bucket_name, object_key, '/tmp/document.json')
 
-        # Analyze document
-        result = defaultdict(dict)
-        blocks = doc['Blocks']
+    with open('/tmp/document.json') as f:
+        doc = json.load(f)
 
-        # Get format
-        lines = filter_blocks(blocks, 'BlockType', 'LINE')
-        for line in lines:
-            amount_format = get_format(line['Text'])
-            result['format'] = amount_format
-            if amount_format:
-                break
+    # Analyze document
+    result = defaultdict(dict)
+    blocks = doc['Blocks']
 
-        # Find dates value and position
-        data = defaultdict(dict)
-        cells = filter_blocks(blocks, 'BlockType', 'CELL')
-        for cell in cells:
-            if not 'Relationships' in cell:
-                continue
+    # Get format
+    lines = filter_blocks(blocks, 'BlockType', 'LINE')
+    for line in lines:
+        amount_format = get_format(line['Text'])
+        result['format'] = amount_format
+        if amount_format:
+            break
 
-            child_ids = [r['Ids'] for r in cell['Relationships'] if r['Type'] == 'CHILD'][0]
+    # Find dates value and position
+    data = defaultdict(dict)
+    cells = filter_blocks(blocks, 'BlockType', 'CELL')
+    for cell in cells:
+        if not 'Relationships' in cell:
+            continue
 
-            # Get `Text` from `CELL` block
-            cell_text = ''
-            for index, child_id in enumerate(child_ids):
-                word_block = filter_blocks(blocks, 'Id', child_id)[0]
-                cell_text += word_block['Text']
+        child_ids = [r['Ids'] for r in cell['Relationships'] if r['Type'] == 'CHILD'][0]
 
-                if index < len(child_ids) - 1:
-                    cell_text += '_'
+        # Get `Text` from `CELL` block
+        cell_text = ''
+        for index, child_id in enumerate(child_ids):
+            word_block = filter_blocks(blocks, 'Id', child_id)[0]
+            cell_text += word_block['Text']
 
-            # Verify if `Text` could be a valid date
-            date_string = is_date(cell_text)
-            if date_string:
-                cell_text = date_string
-                result['dateRow'] = cell['RowIndex']
-                result['dateColumns'][cell['ColumnIndex']] = date_string
+            if index < len(child_ids) - 1:
+                cell_text += '_'
 
-            cell_row_index = cell['RowIndex']
-            cell_column_index = cell['ColumnIndex']
-            data[cell_row_index][cell_column_index] = clean(cell_text)
+        # Verify if `Text` could be a valid date
+        date_string = is_date(cell_text)
+        if date_string:
+            cell_text = date_string
+            result['dateRow'] = cell['RowIndex']
+            result['dateColumns'][cell['ColumnIndex']] = date_string
 
-        # Delete unused row and columns
-        for row_index in list(data.keys()):
-            if row_index > result['dateRow']:
-                row = data[row_index]
-                for column_index in list(row.keys()):
-                    if column_index not in result['dateColumns'] and column_index != 1:
-                        del row[column_index]
+        cell_row_index = cell['RowIndex']
+        cell_column_index = cell['ColumnIndex']
+        data[cell_row_index][cell_column_index] = clean(cell_text)
 
-                if len(row) > 1:
-                    result['data'][row_index] = row
+        try:
+            data[cell_row_index]['type'] = cell['EntityTypes']
+        except KeyError:
+            pass
 
-        print(f'RESULT: {result}')
+    # Delete unused row and columns
+    for row_index in list(data.keys()):
+        row = data[row_index]
+        for column_index in list(row.keys()):
+            if column_index not in result['dateColumns'] \
+                    and column_index != 1 and column_index != 'type':
+                del row[column_index]
+
+            if len(row) > 1:
+                result['data'][row_index] = row
+
+    filename = object_key.replace('analyzed/', 'processed/')
+    data_string = json.dumps(result, indent=2, default=str)
+
+    s3_client.put_object(
+        Bucket=bucket_name,
+        Key=filename,
+        Body=data_string
+    )
 
     return {
         "statusCode": 200,
-        "body": json.dumps({
-            "message": "ok"
-        }),
+        "body": {
+            "message": {
+                "objectKey": filename,
+                "bucketName": bucket_name
+            }
+        },
     }
 
 

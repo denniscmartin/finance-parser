@@ -2,7 +2,7 @@
    "statusCode": 200,
    "body": {
       "message": {
-         "objectKey": "analyzed/san_f0799678-a362-4b7f-9fff-c26b0bbf2b15.json",
+         "objectKey": "processed/san_d7312109-9099-4dd2-a984-55768641b25e.json",
          "bucketName": "sandbox-finance-parser-data"
       }
    }
