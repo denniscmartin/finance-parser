@@ -1,6 +1,6 @@
 import json
 import boto3
-import re
+
 
 s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
@@ -8,13 +8,14 @@ table = dynamodb.Table('FinanceParser')
 
 
 def lambda_handler(event, context):
-    event_message = event['body']['message']
-    object_key = event_message['objectKey']
-    bucket_name = event_message['bucketName']
-    company_ticker = re.search('processed/(.*)_', object_key).group(1)
+    event_msg = event['body']['message']
 
     # Download file from s3
-    s3_client.download_file(bucket_name, object_key, '/tmp/document.json')
+    s3_client.download_file(
+        event_msg['bucketName'],
+        event_msg['objectKey'],
+        '/tmp/document.json'
+    )
 
     with open('/tmp/document.json') as f:
         doc = json.load(f)
@@ -28,9 +29,7 @@ def lambda_handler(event, context):
                 column_types = []
 
             """
-            The following statement avoids getting a `2020` as the value 
-            of `ASSETS`.
-            
+            Given:
             +------------------+------+------+
             | ASSETS           | 2020 | 2019 |
             +------------------+------+------+
@@ -38,6 +37,8 @@ def lambda_handler(event, context):
             +------------------+------+------+
             | ASSETS_ACCOUNT_2 |      |      |
             +------------------+------+------+
+            
+            The following statement avoids getting `2020` as the value of `ASSETS`.
             """
 
             account_value = account[dateColumn]
@@ -51,7 +52,7 @@ def lambda_handler(event, context):
 
                 batch.put_item(
                     Item={
-                        'pk': f'balance#{company_ticker}',
+                        'pk': f"balance#{event_msg['companyTicker']}",
                         'sk': f'{date}#{row_index}',
                         'account_name': account['1'],
                         'account_value': account_value,
@@ -60,13 +61,12 @@ def lambda_handler(event, context):
                 )
 
         # pk -> item_type#company_ticker
-        # sk -> date
+        # sk -> date#filename
 
         table.put_item(
             Item={
-                'pk': f'file#{company_ticker}',
-                'sk': f"{date}",
-                'filename': object_key.replace('processed/', '')
+                'pk': f"file#{event_msg['companyTicker']}",
+                'sk': f"{date}#{event_msg['objectKey'].replace('processed/', '')}"
             }
         )
 
