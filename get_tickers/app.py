@@ -7,14 +7,8 @@ table = resource.Table('FinanceParser')
 
 
 def lambda_handler(event, context):
-    query_string_parameters = event['queryStringParameters']
-    company_ticker = query_string_parameters['ticker']
-    report_type = query_string_parameters['type']
-    year = query_string_parameters['year']
-
-    pk = f'{report_type}#{company_ticker}'
-    response = table.query(
-        KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(year)
+    response = table.scan(
+        FilterExpression=Key('pk').begins_with('file')
     )
 
     return {

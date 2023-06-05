@@ -120,6 +120,10 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      Cors:
+        AllowMethods: "'GET, POST, OPTIONS'"
+        AllowHeaders: "'content-type, x-api-key'"
+        AllowOrigin: "'*'"
       Models:
         Empty:
           type: object
@@ -142,6 +146,25 @@ Resources:
                   Required: true
               - method.request.querystring.year:
                   Required: true
+    Connectors:
+      DynamoConnector:
+        Properties:
+          Destination:
+            Id: DynamoTable
+          Permissions:
+            - Read
+
+  GetTickersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_tickers/
+      Events:
+        GetProductEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /tickers
+            Method: get
     Connectors:
       DynamoConnector:
         Properties:
@@ -174,3 +197,7 @@ Outputs:
   GetReportEndpoint:
     Description: "Endpoint to get a report"
     Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/report"
+
+  GetTickersEndpoint:
+    Description: "Endpoint to get tickers"
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/ticker"
