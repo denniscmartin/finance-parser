@@ -201,3 +201,9 @@ Outputs:
   GetTickersEndpoint:
     Description: "Endpoint to get tickers"
     Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/ticker"
+
+  RestApiId:
+    Description: "The ID of the serverless rest API"
+    Value: !Ref Api
+    Export:
+      Name: FinanceParserRestApiId
