@@ -51,7 +51,7 @@ def lambda_handler(event, context):
                 cell_text += '_'
 
         # Verify if `Text` could be a valid date
-        date_string = is_date(clean_text(cell_text, 'date'))
+        date_string = is_date(cell_text)
         if date_string:
             cell_text = date_string
             result['dateRow'] = cell['RowIndex']
@@ -121,11 +121,23 @@ def is_date(string_date):
             date = datetime.strptime(string_date, format_allowed)
 
             if date.year > datetime.now().year or date.year < 1900:
-                return  # Date out of range date
+                return  # Fecha fuera de rango
 
             return date.strftime("%Y")
         except ValueError:
-            continue
+
+            # Try removing characters from the beginning and end
+            options = [string_date[:-1], string_date[1:], string_date[1:-1]]
+            for option in options:
+                try:
+                    date = datetime.strptime(option, format_allowed)
+
+                    if date.year > datetime.now().year or date.year < 1900:
+                        return  # Fecha fuera de rango
+
+                    return date.strftime("%Y")
+                except ValueError:
+                    continue
 
     return
 
@@ -157,15 +169,8 @@ def clean_text(text, text_type='default'):
 
     if text_type == 'date':
         allowed_chars = ['_', '-', '/']
-
-        # Sometimes date is '2020a' or 'b2020' because indexes
-        if text[-1].isalpha():
-            special_chars.append(text[-1])
-
-        if text[0].isalpha():
-            special_chars.append(text[0])
     else:
-        allowed_chars = ['.', ',', '-', ' ']
+        allowed_chars = ['_']
 
     special_chars = [char for char in special_chars if char not in allowed_chars]
 

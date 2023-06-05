@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
     company_ticker = re.search('unprocessed/(.*)_', object_key).group(1)
     doc_type = re.search(f'unprocessed/{company_ticker}_(.*).pdf', object_key).group(1)
-    file_id = uuid.uuid4()
+    file_id = str(uuid.uuid4())
 
     data_dict = textract_client.analyze_document(
         Document={'S3Object': {'Bucket': bucket_name, 'Name': object_key}},

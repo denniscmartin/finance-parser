@@ -2,7 +2,11 @@
    "statusCode": 200,
    "body": {
       "message": {
-         "objectKey": "processed/san_balance_d7312109-9099-4dd2-a984-55768641b25e.json",
+         "companyTicker": "san",
+         "docType": "balance",
+         "fileId": "50d30446-015c-47bd-bb33-af487120c0d5",
+         "fileName": "san_balance_50d30446-015c-47bd-bb33-af487120c0d5.json",
+         "objectKey": "processed/san_balance_50d30446-015c-47bd-bb33-af487120c0d5.json",
          "bucketName": "sandbox-finance-parser-data"
       }
    }

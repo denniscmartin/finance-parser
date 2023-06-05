@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Serverless balance sheet analyzer using Textract and a serverless API
+Description: Serverless finance staments analyzer using Textract and a serverless API
 
 Conditions:
   CreateProdResources: !Equals
@@ -169,3 +169,8 @@ Resources:
           AttributeType: S
         - AttributeName: sk
           AttributeType: S
+
+Outputs:
+  GetReportEndpoint:
+    Description: "Endpoint to get a report"
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/Prod/report"

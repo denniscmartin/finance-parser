@@ -56,7 +56,8 @@ def lambda_handler(event, context):
                         'sk': f'{date}#{row_index}',
                         'account_name': account['1'],
                         'account_value': account_value,
-                        'column_types': column_types
+                        'column_types': column_types,
+                        'format': doc['format']
                     }
                 )
 
@@ -65,7 +66,7 @@ def lambda_handler(event, context):
 
         table.put_item(
             Item={
-                'pk': f"file#{event_msg['companyTicker']}",
+                'pk': f"file#balance#{event_msg['companyTicker']}",
                 'sk': f"{date}#{event_msg['objectKey'].replace('processed/', '')}"
             }
         )
