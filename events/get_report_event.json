@@ -1,0 +1,7 @@
+{
+  "queryStringParameters": {
+    "ticker": "san",
+    "type": "balance",
+    "year": "2021"
+  }
+}

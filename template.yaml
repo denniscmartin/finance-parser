@@ -69,8 +69,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: analyze_document/
-      Handler: app.lambda_handler
-      Runtime: python3.7
       Policies:
         - Version: "2012-10-17"
           Statement:
@@ -91,8 +89,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: process_document/
-      Handler: app.lambda_handler
-      Runtime: python3.7
     Connectors:
       S3Connector:
         Properties:
@@ -106,8 +102,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: upload_document/
-      Handler: app.lambda_handler
-      Runtime: python3.7
     Connectors:
       DynamoConnector:
         Properties:
@@ -119,6 +113,40 @@ Resources:
         Properties:
           Destination:
             Id: S3Bucket
+          Permissions:
+            - Read
+
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Models:
+        Empty:
+          type: object
+
+  GetReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_report/
+      Events:
+        GetProductEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /report
+            Method: get
+            RequestParameters:
+              - method.request.querystring.ticker:
+                  Required: true
+              - method.request.querystring.type:
+                  Required: true
+              - method.request.querystring.year:
+                  Required: true
+    Connectors:
+      DynamoConnector:
+        Properties:
+          Destination:
+            Id: DynamoTable
           Permissions:
             - Read
 
