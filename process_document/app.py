@@ -152,7 +152,7 @@ def get_format(phrase):
     for amount_format in amount_formats:
         plural_amount_format = f'{amount_format}s'
 
-        if amount_format in phrase or plural_amount_format in phrase:
+        if amount_format in phrase.lower() or plural_amount_format in phrase.lower():
             return amount_format
 
 

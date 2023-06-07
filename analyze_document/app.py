@@ -14,7 +14,7 @@ def lambda_handler(event, context):
     object_key = event_detail['object']['key']
 
     company_ticker = re.search('unprocessed/(.*)_', object_key).group(1)
-    doc_type = re.search(f'unprocessed/{company_ticker}_(.*).pdf', object_key).group(1)
+    doc_type = re.search(f'unprocessed/{company_ticker}_(.*)_', object_key).group(1)
     file_id = str(uuid.uuid4())
 
     data_dict = textract_client.analyze_document(
