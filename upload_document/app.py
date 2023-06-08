@@ -50,27 +50,31 @@ def lambda_handler(event, context):
                 account_value = ''
 
             with table.batch_writer() as batch:
+                try:
+                    account_name = account['1']
 
-                # pk -> item_type#company_ticker
-                # sk -> date#row_index
+                    # pk -> item_type#company_ticker
+                    # sk -> date#row_index
 
-                batch.put_item(
-                    Item={
-                        'pk': f"balance#{event_msg['companyTicker']}",
-                        'sk': f'{date}#{row_index}',
-                        'account_name': account['1'],
-                        'account_value': account_value,
-                        'column_types': column_types,
-                        'format': doc['format']
-                    }
-                )
+                    batch.put_item(
+                        Item={
+                            'pk': f"balance#{event_msg['companyTicker']}",
+                            'sk': f'{date}#{row_index}',
+                            'account_name': account_name,
+                            'account_value': account_value,
+                            'column_types': column_types,
+                            'format': doc['format']
+                        }
+                    )
+                except KeyError:
+                    pass
 
         # pk -> item_type#company_ticker
         # sk -> date#filename
 
         table.put_item(
             Item={
-                'pk': f"file#balance#{event_msg['companyTicker']}",
+                'pk': f"file#{event_msg['docType']}#{event_msg['companyTicker']}",
                 'sk': f"{date}#{event_msg['objectKey'].replace('processed/', '')}"
             }
         )
