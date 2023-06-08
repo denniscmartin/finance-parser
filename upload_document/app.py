@@ -41,7 +41,11 @@ def lambda_handler(event, context):
             The following statement avoids getting `2020` as the value of `ASSETS`.
             """
 
-            account_value = account[dateColumn]
+            try:
+                account_value = account[dateColumn]
+            except KeyError:
+                account_value = ''
+
             if 'COLUMN_HEADER' in column_types and date == account_value:
                 account_value = ''
 
