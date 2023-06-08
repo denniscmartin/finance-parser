@@ -1,13 +1,13 @@
 {
-   "statusCode": 200,
-   "body": {
-      "message": {
-         "companyTicker": "san",
-         "docType": "balance",
-         "fileId": "50d30446-015c-47bd-bb33-af487120c0d5",
-         "fileName": "san_balance_50d30446-015c-47bd-bb33-af487120c0d5.json",
-         "objectKey": "processed/san_balance_50d30446-015c-47bd-bb33-af487120c0d5.json",
-         "bucketName": "sandbox-finance-parser-data"
-      }
-   }
+  "statusCode": 200,
+  "body": {
+    "message": {
+      "companyTicker": "acx",
+      "docType": "pnl",
+      "fileId": "decc36fa-540d-40d0-ae50-048cb3270571",
+      "fileName": "acx_pnl_decc36fa-540d-40d0-ae50-048cb3270571.json",
+      "objectKey": "processed/acx_pnl_decc36fa-540d-40d0-ae50-048cb3270571.json",
+      "bucketName": "sandbox-finance-parser-data"
+    }
+  }
 }

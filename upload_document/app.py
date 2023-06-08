@@ -58,7 +58,7 @@ def lambda_handler(event, context):
 
                     batch.put_item(
                         Item={
-                            'pk': f"balance#{event_msg['companyTicker']}",
+                            'pk': f"{event_msg['docType']}#{event_msg['companyTicker']}",
                             'sk': f'{date}#{row_index}',
                             'account_name': account_name,
                             'account_value': account_value,

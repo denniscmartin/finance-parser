@@ -1,7 +1,7 @@
 {
   "queryStringParameters": {
-    "ticker": "san",
-    "type": "balance",
+    "ticker": "acx",
+    "type": "pnl",
     "year": "2021"
   }
 }
