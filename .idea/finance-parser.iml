@@ -14,14 +14,14 @@
         <entry key="template.yaml">
           <value>
             <SyncSamConfig>
-              <option name="bucketName" value="572540046516-denniscm-cftemplates" />
+              <option name="bucketName" value="sandbox-deployment-bucket" />
               <option name="enabledCapabilities">
                 <list>
                   <option value="NAMED_IAM" />
                   <option value="AUTO_EXPAND" />
                 </list>
               </option>
-              <option name="stackName" value="FinanceParserBackend" />
+              <option name="stackName" value="DennisCm-FinanceParser" />
               <option name="tags">
                 <map />
               </option>
