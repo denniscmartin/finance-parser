@@ -2,12 +2,12 @@
   "statusCode": 200,
   "body": {
     "message": {
-      "companyTicker": "acx",
+      "companyTicker": "itx",
       "docType": "pnl",
-      "fileId": "decc36fa-540d-40d0-ae50-048cb3270571",
-      "fileName": "acx_pnl_decc36fa-540d-40d0-ae50-048cb3270571.json",
-      "objectKey": "processed/acx_pnl_decc36fa-540d-40d0-ae50-048cb3270571.json",
-      "bucketName": "sandbox-finance-parser-data"
+      "fileId": "9cb68002-2152-48f0-8ebe-529533f28d8c",
+      "fileName": "itx_pnl_9cb68002-2152-48f0-8ebe-529533f28d8c.json",
+      "objectKey": "processed/itx_pnl_9cb68002-2152-48f0-8ebe-529533f28d8c.json",
+      "bucketName": "finance-parser-data"
     }
   }
 }

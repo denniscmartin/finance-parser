@@ -11,6 +11,15 @@ def lambda_handler(event, context):
         FilterExpression=Key('pk').begins_with('file')
     )
 
+    results = []
+    for item in response['Items']:
+        item_pk = item['pk'].split('#', 1)[1]
+        item_year = item['sk'].split('#', 1)[0]
+        item_key = f'{item_pk}#{item_year}'  # pnl#acx#2022
+
+        if item_key not in results:
+            results.append(item_key)
+
     return {
         "statusCode": 200,
         "headers": {
@@ -20,8 +29,8 @@ def lambda_handler(event, context):
         },
         "body": json.dumps({
             "message": {
-                "items": response['Items'],
-                "count": len(response['Items'])
+                "items": results,
+                "count": len(results)
             }
         }),
     }
